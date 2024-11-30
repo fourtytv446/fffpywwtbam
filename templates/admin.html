@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fastest Finger First - Admin Panel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .player-list { border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; }
+        .question-form { display: flex; flex-direction: column; }
+        input, button { margin: 10px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Fastest Finger First - Admin Control Panel</h1>
+    
+    <div class="player-list">
+        <h2>Connected Players</h2>
+        <p>Players Connected: <span id="player-count">0</span>/6</p>
+        <ul id="player-list"></ul>
+    </div>
+
+    <div class="question-form">
+        <h2>Set Question</h2>
+        <input type="text" id="question" placeholder="Question">
+        <input type="text" id="option1" placeholder="Option 1">
+        <input type="text" id="option2" placeholder="Option 2">
+        <input type="text" id="option3" placeholder="Option 3">
+        <input type="text" id="option4" placeholder="Option 4">
+        <input type="text" id="correct-order" placeholder="Correct Order (e.g., 2-1-4-3)">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="resetGame()">Reset Game</button>
+    </div>
+
+    <script>
+        const socket = io('https://fffpywwtbam.onrender.com/');
+
+        socket.on('player_list_update', (players) => {
+            const playerList = document.getElementById('player-list');
+            const playerCount = document.getElementById('player-count');
+            
+            playerList.innerHTML = '';
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player;
+                playerList.appendChild(li);
+            });
+            
+            playerCount.textContent = players.length;
+        });
+
+        socket.on('game_result', (result) => {
+            alert(`Winner: ${result.winner}`);
+            console.log('Detailed Results:', result.correct_responses);
+        });
+
+        function startGame() {
+            const question = document.getElementById('question').value;
+            const options = [
+                document.getElementById('option1').value,
+                document.getElementById('option2').value,
+                document.getElementById('option3').value,
+                document.getElementById('option4').value
+            ];
+            const correctOrder = document.getElementById('correct-order').value;
+
+            socket.emit('admin_start_game', {
+                question: question,
+                option1: options[0],
+                option2: options[1],
+                option3: options[2],
+                option4: options[3],
+                correct_order: correctOrder
+            });
+        }
+
+        function resetGame() {
+            // Clear form
+            document.getElementById('question').value = '';
+            document.getElementById('option1').value = '';
+            document.getElementById('option2').value = '';
+            document.getElementById('option3').value = '';
+            document.getElementById('option4').value = '';
+            document.getElementById('correct-order').value = '';
+
+            // You might want to add additional reset logic here
+        }
+    </script>
+</body>
+</html>
